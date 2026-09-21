@@ -14,7 +14,7 @@ The core idea is pretty straightforward:
 
 1. **You tell it what you've got**: Time per session, equipment available, days per week
 2. **It picks a split**: Based on your frequency (3 days = full body, 4 days = upper/lower, 5 days = PPL, etc.)
-3. **It builds the routine**: For each day, it figures out which muscles to target, then distributes ~4000 exercises across them. The math ensures no muscle group gets shorted. It also makes sure you don't do the same exercise twice in one session.
+3. **It builds the routine**: For each day, it figures out which muscles to target, then distributes ~100 exercises across them. The math ensures no muscle group gets shorted. It also makes sure you don't do the same exercise twice in one session.
 4. **You get your routine**: Fully fleshed out with sets and everything
 
 The tricky part was the distribution algorithm. When you have an odd number of exercises and multiple muscle groups, you need to handle the remainder fairly. I used a base allocation approach - each muscle gets a baseline number of exercises, and the remaining slots go to the first few muscles in the list.
@@ -64,7 +64,7 @@ cd Final-Project
 echo 'SECRET_KEY="some-random-string-here"' > .env
 
 # Set up the database
-deno run --allow-read --allow-write tasks/db-init.js
+deno run --allow-read --allow-write tools/db-init.js
 
 # Start the server
 deno run --allow-net --allow-read --allow-env main.js
