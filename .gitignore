@@ -1,11 +1,17 @@
-# Deno
-# https://deno.com/
+# SQLite Database Files
+app.db
+*.db-journal
+*.db-shm
+*.db-wal
 
-# Cache directory (when using project-local DENO_DIR)
-# https://docs.deno.com/runtime/fundamentals/setup/#deno_dir
-.deno/
+# Environment Variables (Keeps your secret keys safe)
+.env
 
-# Coverage reports
-# https://docs.deno.com/runtime/reference/cli/coverage/
+# Deno specific
+cov/
 coverage/
-*.lcov
+
+# OS / Editor Files
+.DS_Store
+.vscode/
+*.log
