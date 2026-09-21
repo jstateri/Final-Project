@@ -13,8 +13,8 @@ The algorithm approach matters here - I'm not using generative AI to hallucinate
 The core idea is pretty straightforward:
 
 1. **You tell it what you've got**: Time per session, equipment available, days per week
-2. **It picks a split**: Based on your frequency (3 days = full body, 4 days = upper/lower, 5 days = PPL, etc.)
-3. **It builds the routine**: For each day, it figures out which muscles to target, then distributes ~100 exercises across them. The math ensures no muscle group gets shorted. It also makes sure you don't do the same exercise twice in one session.
+2. **It picks a split**: Based on your frequency (3 days = full body, 4 days = upper/lower, 6 days = PPL, etc.)
+3. **It builds the routine**: For each day, it figures out which muscles to target, then distributes 94 exercises across them. The math ensures no muscle group gets shorted. It also makes sure you don't do the same exercise twice in one session.
 4. **You get your routine**: Fully fleshed out with sets and everything
 
 The tricky part was the distribution algorithm. When you have an odd number of exercises and multiple muscle groups, you need to handle the remainder fairly. I used a base allocation approach - each muscle gets a baseline number of exercises, and the remaining slots go to the first few muscles in the list.
@@ -23,7 +23,7 @@ The tricky part was the distribution algorithm. When you have an odd number of e
 
 **Deno** - Went with Deno instead of Node because it handles permissions better and doesn't have the npm baggage. Felt cleaner for a project like this.
 
-**SQLite** - The exercise database needed proper normalization. I have ~4000 exercises mapped to multiple equipment types via a junction table. SQLite's referential integrity (especially CASCADE deletes) prevented a lot of headaches.
+**SQLite** - The exercise database needed proper normalization. I have 94 exercises mapped to multiple equipment types via a junction table. SQLite's referential integrity (especially CASCADE deletes) prevented a lot of headaches.
 
 **Server-side rendering with Bootstrap** - No need for a heavy frontend framework here. The app isn't interactive enough to justify React. Server-side rendering keeps it simple and fast.
 
@@ -60,14 +60,11 @@ You need Deno installed. Then:
 git clone https://github.com/jstateri/Final-Project.git
 cd Final-Project
 
-# Create a .env file with a secret key
-echo 'SECRET_KEY="some-random-string-here"' > .env
-
 # Set up the database
-deno run --allow-read --allow-write tools/db-init.js
+deno task db:init
 
 # Start the server
-deno run --allow-net --allow-read --allow-env main.js
+deno task serve
 
 # Go to http://localhost:8000
 ```
