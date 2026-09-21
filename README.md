@@ -76,7 +76,7 @@ deno run --allow-net --allow-read --allow-env main.js
 
 **The exercise distribution**: Getting the algorithm right was harder than it sounds. You want fairness (each muscle gets roughly equal volume) but also flexibility (if there's only one quad exercise available, you can't pretend there are three). I ended up separating concerns - filter exercises by equipment first, then allocate based on what's actually available.
 
-**Avoiding duplicate exercises in a session**: I solved this by removing exercises from the pool as they get selected. Not the most elegant solution but it works - no repeats per session, variety is guaranteed.
+**Avoiding duplicate exercises in a session**: I solved this by removing exercises from the pool as they're selected, which guarantees no duplicates and keeps the logic straightforward.
 
 **Database normalization**: Setting up the junction table for exercises and equipment took some thought. You need proper foreign keys and cascade deletes or you end up with orphaned records everywhere.
 
