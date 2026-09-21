@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "db:init": "deno run --allow-all tasks/db-init.js",
+    "serve": "deno run --watch --allow-all main.js"
+  },
+  "imports": {
+    "@db/sqlite": "jsr:@db/sqlite@^0.13.0",
+    "@std/http": "jsr:@std/http@^1.0.25"
+  }
+}

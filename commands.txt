@@ -1,0 +1,21 @@
+irm https://deno.land/install.ps1 | iex
+deno add jsr:@std/http
+deno add jsr:@db/sqlite
+
+//extensions
+deno
+live server
+sqlite viewer
+
+Notice that you don't get any autocomplete suggestions for the Deno
+namespace. We need to activate the deno extension for this.
+Activate it by typing Ctrl + Shift + P to open the VSCode command palette
+and search for Deno: Enable. Select the enable option and you should now
+have autocompletion activated
+
+//run deno
+deno run --allow-all --watch main.js
+
+//after adding deno.json tasks and setting up database
+deno task db:init
+deno task serve
