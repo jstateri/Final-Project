@@ -1,51 +1,95 @@
-# Automated Constraint-Based Fitness Routine Generator
+# Fitness Routine Generator
 
-A full-stack web application that dynamically generates structured workout routines using a deterministic, rule-based algorithm. This project was developed to solve the hallucination and constraint-ignorance issues common in Generative AI fitness applications.
+A web application that generates personalized workout routines based on what you actually have available - your time, equipment, and how many days a week you can train. Instead of giving you generic exercises that might not work for your situation, it builds something practical.
+
+## Why I Built This
+
+I got frustrated with fitness AI apps that generate routines without thinking about constraints. They'll suggest barbell exercises when you only have dumbbells, or create 60-minute routines when you only have 30 minutes free. I wanted to build something that actually listened to what a user had available and worked within those limits.
+
+The algorithm approach matters here - I'm not using generative AI to hallucinate routines. Instead, I map your inputs to known training splits and mathematically distribute exercises to ensure balanced muscle coverage. It's deterministic, predictable, and respects your constraints.
+
+## How It Works
+
+The core idea is pretty straightforward:
+
+1. **You tell it what you've got**: Time per session, equipment available, days per week
+2. **It picks a split**: Based on your frequency (3 days = full body, 4 days = upper/lower, 5 days = PPL, etc.)
+3. **It builds the routine**: For each day, it figures out which muscles to target, then distributes ~4000 exercises across them. The math ensures no muscle group gets shorted. It also makes sure you don't do the same exercise twice in one session.
+4. **You get your routine**: Fully fleshed out with sets and everything
+
+The tricky part was the distribution algorithm. When you have an odd number of exercises and multiple muscle groups, you need to handle the remainder fairly. I used a base allocation approach - each muscle gets a baseline number of exercises, and the remaining slots go to the first few muscles in the list.
 
 ## Tech Stack
-* **Runtime:** Deno
-* **Database:** SQLite (@db/sqlite)
-* **Frontend:** Server-Side Rendered HTML, Bootstrap 5.3
-* **Architecture:** MVC (Model-View-Controller)
-* **Security:** Native Web Crypto API
 
-## Engineering Highlights
+**Deno** - Went with Deno instead of Node because it handles permissions better and doesn't have the npm baggage. Felt cleaner for a project like this.
 
-### Constraint Satisfaction Engine
-The core generation algorithm processes user inputs (available time, equipment, days per week) to build a routine that guarantees a 2x weekly muscle training frequency[cite: 34]. 
-* Maps training days to specific split configurations (Full Body, Upper/Lower, Push/Pull/Legs)[cite: 7].
-* Distributes exercise slots mathematically using base allocations and remainder distribution to ensure all targeted muscles receive adequate volume[cite: 7, 34].
-* Applies strict equipment filtering via SQL queries before allocation, preventing invalid exercise assignments[cite: 7, 34].
-* Deduplicates selections in memory to guarantee exercise variety within a single session[cite: 7, 34].
+**SQLite** - The exercise database needed proper normalization. I have ~4000 exercises mapped to multiple equipment types via a junction table. SQLite's referential integrity (especially CASCADE deletes) prevented a lot of headaches.
 
-### Relational Database Design
-The application utilizes a highly normalized SQLite database designed to prevent data duplication and maintain structural integrity[cite: 34].
-* Implements a many-to-many junction table (`exercise_equipment`) with surrogate keys to map single exercises to multiple equipment types[cite: 19, 34].
-* Enforces referential integrity using `ON DELETE CASCADE` across all foreign keys, preventing orphaned records and state errors[cite: 19, 34].
+**Server-side rendering with Bootstrap** - No need for a heavy frontend framework here. The app isn't interactive enough to justify React. Server-side rendering keeps it simple and fast.
 
-### Custom Security Implementation
-* Session-based authentication implemented via cookies to manage user states[cite: 20].
-* Passwords are mathematically hashed using the Web Crypto API, applying PBKDF2, SHA-256, and salt iterations to prevent brute-force vulnerabilities[cite: 22, 34].
+**Native Web Crypto API** - For password hashing, I used the native crypto API instead of reaching for a library. Implemented PBKDF2 with SHA-256 and 5000 iterations. Made me understand *why* password hashing is designed the way it is.
 
-## Running Locally
+## Code Structure
 
-### Prerequisites
-* Deno installed on your local machine.
+/controllers - handles requests, runs the algorithm, validates input
+/models - talks to the database (SQLite prepared statements)
+/views - generates the HTML that users see
+/tools - utility stuff like auth, hashing, session management
+/schema - validation rules for user input
 
-### Setup Instructions
 
-1. Clone the repository and navigate to the project root.
-2. Create a `.env` file in the root directory and define your secret key for password hashing:
-   `SECRET_KEY="your_secure_string_here"`
-3. Initialize and seed the SQLite database:
-   `deno run --allow-read --allow-write tools/db-init.js`
-4. Start the application server:
-   `deno run --allow-net --allow-read --allow-env main.js`
-5. Open your web browser and navigate to `http://localhost:8000`
+I used MVC because it's clean. Business logic stays separate from database access, which stays separate from what the user sees. Makes it easier to test and change things later.
 
-## Project Structure
-* `/controllers` - Algorithmic logic, routing handlers, and data validation.
-* `/models` - SQLite database interactions, prepared statements, and queries.
-* `/views` - Server-side rendered HTML template functions.
-* `/tools` - Utility scripts for database initialization, cryptography, and session management.
-* `/schema` - Input validation schemas.
+## Security Stuff
+
+Session-based authentication - user logs in, gets a session ID in a cookie. The server validates it on every request.
+
+Password hashing with PBKDF2 - passwords go through 5000 iterations of hashing with a salt. Not storing plaintext obviously, and the iterations slow down anyone trying to brute force.
+
+Prepared statements - all database queries use parameterized statements to prevent SQL injection.
+
+## Running It
+
+You need Deno installed. Then:
+
+```bash
+git clone https://github.com/jstateri/Final-Project.git
+cd Final-Project
+
+# Create a .env file with a secret key
+echo 'SECRET_KEY="some-random-string-here"' > .env
+
+# Set up the database
+deno run --allow-read --allow-write tasks/db-init.js
+
+# Start the server
+deno run --allow-net --allow-read --allow-env main.js
+
+# Go to http://localhost:8000
+```
+
+## What Was Actually Hard
+
+**The exercise distribution**: Getting the algorithm right was harder than it sounds. You want fairness (each muscle gets roughly equal volume) but also flexibility (if there's only one quad exercise available, you can't pretend there are three). I ended up separating concerns - filter exercises by equipment first, then allocate based on what's actually available.
+
+**Avoiding duplicate exercises in a session**: I solved this by removing exercises from the pool as they get selected. Not the most elegant solution but it works - no repeats per session, variety is guaranteed.
+
+**Database normalization**: Setting up the junction table for exercises and equipment took some thought. You need proper foreign keys and cascade deletes or you end up with orphaned records everywhere.
+
+**Auth without a library**: I could have used a third-party service, but wanted to understand how it actually works. Taught me why you probably *should* use established libraries in production - there's a lot to think about.
+
+## What I'd Do Differently
+
+If I built this again, I'd add:
+
+- Progress tracking so users can log their workouts and see what they actually did
+- Some kind of feedback loop so the app learns which exercises a user actually completes
+- Video links for exercises so people don't have to guess what "landmine rotation" means
+- API layer if someone wants to build a mobile app on top
+- Caching for exercise queries since that data doesn't change
+
+Also, first version generated perfect routines but assumed everyone had access to whatever exercises existed. The real lesson was learning to fail gracefully - if someone only has resistance bands, the app needs to handle that without crashing.
+
+## Links
+
+[GitHub Repo](https://github.com/jstateri/Final-Project)
