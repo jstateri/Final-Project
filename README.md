@@ -32,10 +32,15 @@ The tricky part was the distribution algorithm. When you have an odd number of e
 ## Code Structure
 
 **`/controllers`** - handles requests, runs the algorithm, validates input
+
 **`/models`** - talks to the database (SQLite prepared statements)
+
 **`/views`** - generates the HTML that users see
+
 **`/tools`** - utility stuff like auth, hashing, session management
+
 **`/schema`** - validation rules for user input
+
 
 I used MVC because it's clean. Business logic stays separate from database access, which stays separate from what the user sees. Makes it easier to test and change things later.
 
